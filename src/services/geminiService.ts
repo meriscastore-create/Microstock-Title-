@@ -1,11 +1,12 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { JsonPrompt } from './types';
+import type { JsonPrompt } from '../types';
 
-// Fix: Per Gemini API guidelines, API key must be obtained from process.env.API_KEY.
-if (!process.env.API_KEY) {
+// Fix: Per Gemini API guidelines, API key must be obtained from `process.env.API_KEY`.
+const apiKey = process.env.API_KEY;
+if (!apiKey) {
     throw new Error("API_KEY environment variable not set.");
 }
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey });
 
 // Define a response schema for consistent JSON output, as recommended by Gemini API guidelines.
 const jsonPromptSchema = {
