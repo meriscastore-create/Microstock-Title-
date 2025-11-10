@@ -1,11 +1,12 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { JsonPrompt } from '../types';
 
-// Check for the API key availability without crashing the app.
-const apiKey = process.env.API_KEY;
+// CORRECT: Use the Vercel/Vite standard for environment variables.
+const apiKey = process.env.VITE_API_KEY;
 export const isApiKeySet = !!apiKey;
 
-// Initialize AI only if the key exists.
+// Initialize AI only if the key exists to prevent crashes.
 const ai = isApiKeySet ? new GoogleGenAI({ apiKey }) : null;
 
 // Define a response schema for consistent JSON output, as recommended by Gemini API guidelines.
@@ -25,7 +26,8 @@ const jsonPromptSchema = {
 
 const checkApiKey = () => {
     if (!ai) {
-        throw new Error("Gemini API key is not configured. Please set the API_KEY environment variable.");
+        // This error will be caught by the UI and displayed nicely.
+        throw new Error("Gemini API key is not configured.");
     }
 };
 
@@ -128,7 +130,8 @@ export const modifyJson = async (currentJson: JsonPrompt, modificationType: 'col
     
     try {
         return JSON.parse(response.text) as JsonPrompt;
-    } catch (e) {
+    } catch (e)
+        {
         console.error("Failed to parse JSON from response:", response.text, e);
         throw new Error("Failed to modify the JSON prompt.");
     }

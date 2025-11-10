@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo } from 'react';
 import type { JsonPrompt } from './types';
 import { generateTitle, generateJson, modifyJson, isApiKeySet } from './services/geminiService';
@@ -8,14 +9,19 @@ const ApiKeyError: React.FC = () => (
         <div className="max-w-2xl w-full bg-slate-800 border border-red-500/50 rounded-xl p-8 text-center shadow-lg animate-fade-in">
             <h1 className="text-3xl font-bold text-red-400 mb-4">Configuration Error</h1>
             <p className="text-slate-300 text-lg mb-2">
-                The Gemini API key is missing.
+                The Gemini API key is missing or invalid.
             </p>
             <p className="text-slate-400">
-                To fix this, please add your Gemini API key as an environment variable named <code>API_KEY</code> in your project settings.
+                To fix this for deployment, go to your hosting provider's dashboard (e.g., Vercel) and add an Environment Variable.
             </p>
-            <pre className="mt-6 bg-slate-900 text-left p-4 rounded-lg text-slate-300 font-mono text-sm">
-                API_KEY=AIzaSy...
-            </pre>
+            <div className="mt-6 bg-slate-900 text-left p-4 rounded-lg text-slate-300 font-mono text-sm space-y-1">
+               {/* CORRECT: Instruct the user to use the VITE_ prefix */}
+               <p><span className="text-cyan-400">Variable Name:</span> VITE_API_KEY</p>
+               <p><span className="text-cyan-400">Variable Value:</span> Your-Secret-Gemini-API-Key</p>
+            </div>
+             <p className="text-slate-500 mt-4 text-xs">
+                The 'VITE_' prefix is required by the build system for security.
+            </p>
         </div>
     </div>
 );

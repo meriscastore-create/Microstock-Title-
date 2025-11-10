@@ -2,13 +2,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { JsonPrompt } from '../types';
 
-// Fix: Per Gemini API guidelines, API key must be read from process.env.API_KEY and error message simplified to be compliant.
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set.");
-}
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// CORRECT: Use the Vercel/Vite standard for environment variables.
+const apiKey = process.env.VITE_API_KEY;
+export const isApiKeySet = !!apiKey;
 
-// Fix: Define a response schema for consistent JSON output, as recommended by Gemini API guidelines.
+// Initialize AI only if the key exists to prevent crashes.
+const ai = isApiKeySet ? new GoogleGenAI({ apiKey }) : null;
+
+// Define a response schema for consistent JSON output, as recommended by Gemini API guidelines.
 const jsonPromptSchema = {
     type: Type.OBJECT,
     properties: {
@@ -23,8 +24,15 @@ const jsonPromptSchema = {
     required: ["concept", "composition", "color", "background", "mood", "style", "settings"]
 };
 
+const checkApiKey = () => {
+    if (!ai) {
+        // This error will be caught by the UI and displayed nicely.
+        throw new Error("Gemini API key is not configured.");
+    }
+};
 
 export const generateTitle = async (userInput: string): Promise<string> => {
+    checkApiKey();
     const prompt = `
         You are an expert microstock keyword and title generator. Your task is to create a compelling and keyword-rich title for a seamless pattern based on the main element: "${userInput}".
 
@@ -47,8 +55,7 @@ export const generateTitle = async (userInput: string): Promise<string> => {
         Now, generate a title for: "${userInput}"
     `;
 
-    // Fix: Use ai.models.generateContent directly as per Gemini API guidelines
-    const response = await ai.models.generateContent({
+    const response = await ai!.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt
     });
@@ -57,7 +64,7 @@ export const generateTitle = async (userInput: string): Promise<string> => {
 };
 
 export const generateJson = async (generatedTitle: string): Promise<JsonPrompt> => {
-    // Fix: Simplified prompt to leverage responseSchema for JSON generation.
+    checkApiKey();
     const prompt = `
         You are an AI prompt engineer for image generation. Based on the provided microstock title, generate a JSON object describing an image generation prompt.
         The entire string of the generated JSON object must be under 910 characters.
@@ -65,8 +72,7 @@ export const generateJson = async (generatedTitle: string): Promise<JsonPrompt> 
         Microstock Title: "${generatedTitle}"
     `;
 
-    // Fix: Use ai.models.generateContent and responseSchema for reliable JSON output.
-    const response = await ai.models.generateContent({
+    const response = await ai!.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
@@ -75,18 +81,17 @@ export const generateJson = async (generatedTitle: string): Promise<JsonPrompt> 
         },
     });
     
-    // Fix: Parse JSON directly from response text, with error handling.
     try {
         return JSON.parse(response.text) as JsonPrompt;
     } catch (e) {
-        console.error("Failed to parse JSON from response:", e);
+        console.error("Failed to parse JSON from response:", response.text, e);
         throw new Error("Failed to generate a valid JSON prompt.");
     }
 };
 
 export const modifyJson = async (currentJson: JsonPrompt, modificationType: 'color' | 'style'): Promise<JsonPrompt> => {
+    checkApiKey();
     let prompt = '';
-    // Fix: Simplified prompts to leverage responseSchema for JSON modification.
     if (modificationType === 'color') {
         prompt = `
             You are an AI prompt engineer. You will be given a JSON object for an image generation prompt.
@@ -114,8 +119,7 @@ export const modifyJson = async (currentJson: JsonPrompt, modificationType: 'col
         `;
     }
 
-    // Fix: Use ai.models.generateContent and responseSchema for reliable JSON output.
-    const response = await ai.models.generateContent({
+    const response = await ai!.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
@@ -124,11 +128,11 @@ export const modifyJson = async (currentJson: JsonPrompt, modificationType: 'col
         }
     });
     
-    // Fix: Parse JSON directly from response text, with error handling.
     try {
         return JSON.parse(response.text) as JsonPrompt;
-    } catch (e) {
-        console.error("Failed to parse JSON from response:", e);
+    } catch (e)
+        {
+        console.error("Failed to parse JSON from response:", response.text, e);
         throw new Error("Failed to modify the JSON prompt.");
     }
 };
