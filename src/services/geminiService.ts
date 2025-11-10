@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { JsonPrompt } from '../types';
+import type { JsonPrompt } from './types';
 
-// Fix: Per Gemini API guidelines, API key must be obtained from process.env.API_KEY. This resolves the error with `import.meta.env`.
+// Fix: Per Gemini API guidelines, API key must be obtained from process.env.API_KEY.
 if (!process.env.API_KEY) {
     throw new Error("API_KEY environment variable not set.");
 }
